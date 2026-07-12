@@ -30,10 +30,10 @@ export default function Dashboard() {
     if (!joinCode.trim()) return;
     setError('');
     try {
-      await axios.get(`${API_URL}/api/rooms/${joinCode.trim()}`, {
+      const res = await axios.get(`${API_URL}/api/rooms/${joinCode.trim()}`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-      navigate(`/lobby/${joinCode.trim()}`);
+      navigate(`/lobby/${res.data.room._id}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Room not found');
     }
