@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const Room = require('../models/Room');
 const Session = require('../models/Session');
 const Message = require('../models/Message');
@@ -29,9 +30,12 @@ exports.createRoom = async (req, res) => {
 
 exports.getRoom = async (req, res) => {
   try {
-    const room = await Room.findOne({
-      $or: [{ _id: req.params.id }, { roomCode: req.params.id }]
-    }).populate('hostId', 'name email avatar');
+    const param = req.params.id;
+    const query = mongoose.Types.ObjectId.isValid(param)
+      ? { $or: [{ _id: param }, { roomCode: param }] }
+      : { roomCode: param };
+
+    const room = await Room.findOne(query).populate('hostId', 'name email avatar');
 
     if (!room) return res.status(404).json({ message: 'Room not found' });
     if (!room.isActive) return res.status(410).json({ message: 'This meeting has ended' });
