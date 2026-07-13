@@ -170,7 +170,7 @@ input::placeholder { color: var(--color-text-muted); }
 .typing-indicator { font-size: 12px; color: var(--color-text-muted); font-style: italic; }
 
 .whiteboard-panel { width: 480px; }
-.whiteboard-panel canvas { flex: 1; background: #fff; cursor: crosshair; }
+.whiteboard-panel canvas { flex: 1; background: #fff; cursor: crosshair; touch-action: none; }
 .wb-tools { display: flex; gap: 6px; align-items: center; }
 .wb-tools button.active { background: var(--color-primary); }
 
@@ -295,3 +295,56 @@ button.small { padding: 7px 12px; font-size: 13px; }
 .file-card { position: relative; }
 .file-card .file-delete { position: absolute; top: 8px; right: 8px; }
 
+
+
+/* ============================================
+   Mobile responsiveness
+   ============================================ */
+@media (max-width: 768px) {
+  /* Auth */
+  .auth-card { width: 90vw; padding: 26px; }
+
+  /* Dashboard */
+  .dashboard-header { padding: 16px 18px; }
+  .dashboard-header h2 { font-size: 17px; }
+  .user-badge span:not(.avatar-badge) { display: none; } /* hide name, keep avatar, save space */
+  .dashboard-tabs { padding: 0 12px; overflow-x: auto; white-space: nowrap; }
+  .dashboard-tabs .tab { padding: 12px 10px; font-size: 13px; }
+  .dashboard-main { padding: 18px; }
+  .dashboard-columns { flex-direction: column; }
+  .dashboard-col, .dashboard-col.wide { width: 100%; min-width: 0; }
+  .greeting-block h1 { font-size: 22px; }
+  .schedule-form { flex-direction: column; align-items: stretch; }
+  .meeting-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .meeting-card-actions { width: 100%; }
+  .meeting-card-actions button { flex: 1; }
+  .activity-grid, .folder-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+
+  /* Lobby */
+  .lobby-preview video { width: 100%; }
+  .room-code-box { flex-wrap: wrap; justify-content: center; text-align: center; }
+
+  /* Room â€” stack video and side panels instead of sitting side by side */
+  .room-body { flex-direction: column; overflow-y: auto; }
+  .video-grid { flex: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); padding: 8px; }
+  .chat-panel, .whiteboard-panel, .userlist-panel {
+    width: 100%; border-left: none; border-top: 1px solid var(--color-border);
+    max-height: 60vh;
+  }
+  .whiteboard-panel canvas { min-height: 320px; }
+  .wb-tools { flex-wrap: wrap; }
+
+  /* Controls bar â€” wrap and shrink so every action stays reachable */
+  .controls-bar { flex-wrap: wrap; gap: 6px; padding: 10px; }
+  .controls-bar button { padding: 8px 10px; font-size: 13px; }
+
+  .network-banner { font-size: 12px; padding: 8px; }
+
+  /* Reports */
+  .report-card { width: 90vw; }
+}
+
+@media (max-width: 420px) {
+  .video-grid { grid-template-columns: 1fr; }
+  .dashboard-tabs .tab { padding: 10px 8px; font-size: 12px; }
+}

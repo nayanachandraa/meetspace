@@ -48,6 +48,8 @@ export default function Whiteboard({ socketRef, roomId, onClose }) {
   const strokeSize = tool === 'eraser' ? 20 : 3;
 
   const startDraw = (e) => {
+    e.preventDefault();
+    canvasRef.current.setPointerCapture?.(e.pointerId);
     drawing.current = true;
     const { x, y } = pos(e);
     const ctx = getCtx();
@@ -60,6 +62,7 @@ export default function Whiteboard({ socketRef, roomId, onClose }) {
 
   const draw = (e) => {
     if (!drawing.current) return;
+    e.preventDefault();
     const { x, y } = pos(e);
     const ctx = getCtx();
     ctx.lineTo(x, y);
@@ -67,8 +70,9 @@ export default function Whiteboard({ socketRef, roomId, onClose }) {
     socketRef.current.emit('draw-move', { roomId, x, y });
   };
 
-  const endDraw = () => {
+  const endDraw = (e) => {
     if (!drawing.current) return;
+    if (e) canvasRef.current.releasePointerCapture?.(e.pointerId);
     drawing.current = false;
     getCtx().closePath();
     socketRef.current.emit('draw-end', { roomId });
@@ -94,10 +98,11 @@ export default function Whiteboard({ socketRef, roomId, onClose }) {
       </div>
       <canvas
         ref={canvasRef}
-        onMouseDown={startDraw}
-        onMouseMove={draw}
-        onMouseUp={endDraw}
-        onMouseLeave={endDraw}
+        onPointerDown={startDraw}
+        onPointerMove={draw}
+        onPointerUp={endDraw}
+        onPointerCancel={endDraw}
+        onPointerLeave={endDraw}
       />
     </div>
   );

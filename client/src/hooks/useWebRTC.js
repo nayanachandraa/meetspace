@@ -64,6 +64,54 @@ export function useWebRTC(socketRef, roomId, userId, userName) {
   }, []);
 
   const init = useCallback(async () => {
+    const socket = socketRef.current;
+
+    // Join the signaling room FIRST, independent of whether media succeeds.
+    // This is what makes chat, whiteboard, and the participant list work
+    // even if this user's camera/mic access fails or is denied.
+    socket.emit('join-room', { roomId, userId, userName });
+
+    socket.on('existing-users', async (users) => {
+      for (const u of users) {
+        setParticipants((prev) => ({ ...prev, [u.socketId]: { userId: u.userId, userName: u.userName } }));
+        const pc = createPeerConnection(u.socketId);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit('send-offer', { to: u.socketId, offer });
+      }
+    });
+
+    socket.on('user-joined', ({ socketId, userId: uid, userName: uname }) => {
+      setParticipants((prev) => ({ ...prev, [socketId]: { userId: uid, userName: uname } }));
+      // Wait for their offer; we don't initiate here to avoid glare.
+    });
+
+    socket.on('receive-offer', async ({ from, offer, userName: uname }) => {
+      setParticipants((prev) => ({ ...prev, [from]: { ...(prev[from] || {}), userName: uname } }));
+      const pc = peerConnections.current[from] || createPeerConnection(from);
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit('send-answer', { to: from, answer });
+    });
+
+    socket.on('receive-answer', async ({ from, answer }) => {
+      const pc = peerConnections.current[from];
+      if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    });
+
+    socket.on('ice-candidate', async ({ from, candidate }) => {
+      const pc = peerConnections.current[from];
+      if (pc && candidate) {
+        try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch (e) { /* ignore */ }
+      }
+    });
+
+    socket.on('user-left', ({ socketId }) => removePeer(socketId));
+
+    // Now attempt local media separately — if this fails, the person stays in
+    // the room (chat, whiteboard, participants all still work), they just
+    // won't have outgoing video/audio and existing peers won't get their track.
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -72,50 +120,8 @@ export function useWebRTC(socketRef, roomId, userId, userName) {
       localStreamRef.current = stream;
       setLocalStream(stream);
       setConnectionState('connected');
-
-      const socket = socketRef.current;
-
-      socket.emit('join-room', { roomId, userId, userName });
-
-      socket.on('existing-users', async (users) => {
-        for (const u of users) {
-          setParticipants((prev) => ({ ...prev, [u.socketId]: { userId: u.userId, userName: u.userName } }));
-          const pc = createPeerConnection(u.socketId);
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          socket.emit('send-offer', { to: u.socketId, offer });
-        }
-      });
-
-      socket.on('user-joined', ({ socketId, userId: uid, userName: uname }) => {
-        setParticipants((prev) => ({ ...prev, [socketId]: { userId: uid, userName: uname } }));
-        // Wait for their offer; we don't initiate here to avoid glare.
-      });
-
-      socket.on('receive-offer', async ({ from, offer, userName: uname }) => {
-        setParticipants((prev) => ({ ...prev, [from]: { ...(prev[from] || {}), userName: uname } }));
-        const pc = peerConnections.current[from] || createPeerConnection(from);
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit('send-answer', { to: from, answer });
-      });
-
-      socket.on('receive-answer', async ({ from, answer }) => {
-        const pc = peerConnections.current[from];
-        if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      });
-
-      socket.on('ice-candidate', async ({ from, candidate }) => {
-        const pc = peerConnections.current[from];
-        if (pc && candidate) {
-          try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch (e) { /* ignore */ }
-        }
-      });
-
-      socket.on('user-left', ({ socketId }) => removePeer(socketId));
     } catch (err) {
-      setConnectionState('error');
+      setConnectionState('no-media');
       console.error('Media/device error:', err);
     }
   }, [socketRef, roomId, userId, userName, createPeerConnection, removePeer]);
