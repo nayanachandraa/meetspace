@@ -111,3 +111,87 @@ exports.getReportPdf = async (req, res) => {
     res.status(500).json({ message: 'Failed to generate PDF report', error: err.message });
   }
 };
+
+// Rooms this user scheduled for the future that haven't started/ended yet
+exports.getUpcomingMeetings = async (req, res) => {
+  try {
+    const rooms = await Room.find({
+      hostId: req.user.id,
+      isActive: true,
+      scheduledFor: { $gte: new Date() }
+    }).sort({ scheduledFor: 1 }).limit(10);
+
+    res.json({ meetings: rooms });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch upcoming meetings', error: err.message });
+  }
+};
+
+// A schedule-only room: created for later, not meant to be entered immediately
+exports.scheduleMeeting = async (req, res) => {
+  try {
+    const { title, scheduledFor } = req.body;
+    if (!scheduledFor) return res.status(400).json({ message: 'scheduledFor is required' });
+
+    const roomCode = generateRoomCode();
+    const room = await Room.create({
+      hostId: req.user.id,
+      roomCode,
+      title: title || 'Untitled Meeting',
+      participants: [req.user.id],
+      scheduledFor: new Date(scheduledFor)
+    });
+
+    res.status(201).json({ meeting: room });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to schedule meeting', error: err.message });
+  }
+};
+
+// Cancel a scheduled meeting that hasn't started yet (host only)
+exports.cancelMeeting = async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) return res.status(404).json({ message: 'Meeting not found' });
+    if (String(room.hostId) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'Only the host can cancel this meeting' });
+    }
+    room.isActive = false;
+    await room.save();
+    res.json({ message: 'Meeting cancelled' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to cancel meeting', error: err.message });
+  }
+};
+
+// Real activity feed: this user's ended meetings (from Session/attendance history)
+exports.getActivity = async (req, res) => {
+  try {
+    const sessions = await Session.find({
+      'attendance.userId': req.user.id,
+      endTime: { $ne: null }
+    })
+      .sort({ endTime: -1 })
+      .limit(10)
+      .populate('roomId', 'title roomCode');
+
+    const activity = sessions
+      .filter((s) => s.roomId) // room may have been fully removed in edge cases
+      .map((s) => {
+        const durationMin = Math.round((new Date(s.endTime) - new Date(s.startTime)) / 60000);
+        return {
+          sessionId: s._id,
+          roomTitle: s.roomId.title,
+          endTime: s.endTime,
+          durationMin,
+          chatCount: s.chatCount,
+          filesShared: s.filesShared,
+          attendeeCount: s.attendance.length
+        };
+      });
+
+    res.json({ activity });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch activity', error: err.message });
+  }
+};

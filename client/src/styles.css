@@ -185,3 +185,88 @@ input::placeholder { color: var(--color-text-muted); }
   display: flex; flex-direction: column; gap: 10px;
   box-shadow: var(--shadow-card);
 }
+
+/* Dashboard v2 â€” tabs, greeting, cards, activity */
+.avatar-badge {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--color-primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+
+.dashboard-tabs {
+  display: flex; gap: 4px; padding: 0 32px;
+  border-bottom: 1px solid var(--color-border);
+}
+.dashboard-tabs .tab {
+  background: transparent; border-radius: 0;
+  padding: 14px 18px; color: var(--color-text-muted);
+  border-bottom: 2px solid transparent; font-weight: 600;
+}
+.dashboard-tabs .tab:hover { background: transparent; color: var(--color-text); }
+.dashboard-tabs .tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+
+.dashboard-main { padding: 32px 40px; }
+.dashboard-main.single-column { max-width: 900px; margin: 0 auto; }
+
+.greeting-block { margin-bottom: 28px; }
+.greeting-date { font-size: 12px; letter-spacing: 0.06em; color: var(--color-text-muted); font-weight: 600; margin-bottom: 4px; }
+.greeting-block h1 { font-size: 28px; }
+
+.dashboard-columns { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+.dashboard-col { display: flex; flex-direction: column; gap: 16px; width: 320px; }
+.dashboard-col.wide { flex: 1; min-width: 340px; }
+
+.action-panel h3 { font-size: 15px; margin-bottom: 14px; }
+.full-width { width: 100%; }
+button.small { padding: 7px 12px; font-size: 13px; }
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.section-header h3 { font-size: 16px; }
+.link-button { background: transparent; color: var(--color-primary); padding: 4px 8px; font-weight: 600; }
+.link-button:hover { background: var(--color-surface-alt); }
+
+.schedule-form {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  padding: 14px; border-radius: var(--radius); margin-bottom: 18px;
+}
+.schedule-form input { margin-bottom: 0; width: auto; flex: 1; min-width: 160px; }
+
+.meeting-list { display: flex; flex-direction: column; gap: 10px; }
+.meeting-card {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.meeting-card-main { display: flex; flex-direction: column; gap: 3px; }
+.meeting-card-title-row { display: flex; align-items: center; gap: 10px; }
+.meeting-card-title { font-weight: 600; }
+.meeting-card-actions { display: flex; gap: 8px; }
+
+.badge {
+  background: rgba(76, 111, 255, 0.15); color: var(--color-primary);
+  padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.02em; white-space: nowrap;
+}
+
+.activity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.activity-grid.wide-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.activity-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius); padding: 16px; cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+.activity-card:hover { border-color: var(--color-primary); transform: translateY(-1px); }
+.activity-card-icon { font-size: 20px; margin-bottom: 8px; }
+.activity-card-title { font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+
+.muted-text { color: var(--color-text-muted); font-size: 13px; }
+
+.empty-state {
+  padding: 24px; text-align: center; color: var(--color-text-muted);
+  background: var(--color-surface); border: 1px dashed var(--color-border);
+  border-radius: var(--radius); margin-bottom: 16px;
+}
+.empty-state.centered { max-width: 420px; margin: 60px auto 0; padding: 32px; }
+.empty-state h3 { color: var(--color-text); margin-bottom: 10px; }
