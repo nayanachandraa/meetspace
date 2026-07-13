@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
+import FilesPanel from '../components/FilesPanel.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -148,6 +149,7 @@ export default function Dashboard() {
       <nav className="dashboard-tabs">
         <button className={tab === 'meetings' ? 'tab active' : 'tab'} onClick={() => setTab('meetings')}>Meetings</button>
         <button className={tab === 'activity' ? 'tab active' : 'tab'} onClick={() => setTab('activity')}>Activity</button>
+        <button className={tab === 'files' ? 'tab active' : 'tab'} onClick={() => setTab('files')}>Files</button>
         <button className={tab === 'chat' ? 'tab active' : 'tab'} onClick={() => setTab('chat')}>Chat</button>
         <button className={tab === 'settings' ? 'tab active' : 'tab'} onClick={() => setTab('settings')}>Settings</button>
       </nav>
@@ -268,6 +270,13 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </main>
+      )}
+
+      {tab === 'files' && (
+        <main className="dashboard-main single-column">
+          <h1 style={{ marginBottom: '20px' }}>Files</h1>
+          <FilesPanel />
         </main>
       )}
 

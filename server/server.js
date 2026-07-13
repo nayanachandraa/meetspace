@@ -8,6 +8,7 @@ const { Server } = require('socket.io');
 const authRoutes = require('./routes/auth');
 const roomRoutes = require('./routes/rooms');
 const uploadRoutes = require('./routes/upload');
+const filesRoutes = require('./routes/files');
 
 const signalingHandler = require('./sockets/signaling');
 const chatSocketHandler = require('./sockets/chatSocket');
@@ -26,6 +27,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/files', filesRoutes);
 
 const io = new Server(server, {
   cors: { origin: CLIENT_URL, methods: ['GET', 'POST'] }
